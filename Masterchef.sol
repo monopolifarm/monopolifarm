@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -8,29 +7,24 @@ import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/interfaces/IERC20.sol";
-
 interface IStrategy {
     function wantLockedTotal() external view returns (uint256);
     function earn() external;
     function deposit(uint256 _wantAmt) external returns (uint256);
     function withdraw(uint256 _wantAmt) external returns (uint256);
 }
-
 interface IEarningsReferral {
     function recordReferral(address _user, address _referrer) external;
     function recordReferralCommission(address _referrer, uint256 _commission) external;
     function getReferrer(address _user) external view returns (address);
     function updateOperator(address _operator, bool _status) external;
 }
-
 abstract contract MintableToken is ERC20 {
     function mint(address _to, uint256 _amount) external {
         _mint(_to, _amount);
     }
 }
-
 pragma solidity 0.6.12;
-
 contract Masterchef is Ownable, ReentrancyGuard {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
@@ -321,10 +315,8 @@ contract Masterchef is Ownable, ReentrancyGuard {
     function emergencyWithdraw(uint256 _pid) public nonReentrant poolExists(_pid){
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
-
         uint256 amount = user.amount;
         amount = IStrategy(pool.strat).withdraw(amount);
-
         user.amount = 0;
         user.rewardDebt = 0;
         pool.want.safeTransfer(address(msg.sender), amount);
@@ -371,7 +363,6 @@ contract Masterchef is Ownable, ReentrancyGuard {
         if (address(earningReferral) != address(0) && referralCommissionRate > 0) {
             address referrer = earningReferral.getReferrer(_user);
             uint256 commissionAmount = _pending.mul(referralCommissionRate).div(10000);
-
             if (referrer != address(0) && commissionAmount > 0) {
                 MintableToken(earningToken).mint(referrer, commissionAmount);
                 earningReferral.recordReferralCommission(referrer, commissionAmount);
@@ -388,7 +379,6 @@ contract Masterchef is Ownable, ReentrancyGuard {
     function setEarningsPerSecond(uint256 _earningsPerSecond) external onlyOwner {
       earningsPerSecond = _earningsPerSecond;
       earningsDevPerSecond = _earningsPerSecond.div(10);
-      
       emit NewEarningsEmission(_earningsPerSecond);
     }
     
